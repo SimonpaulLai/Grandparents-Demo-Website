@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>阿水伯日記生成器</title>
+</head>
+<body>
+  <h1>阿水伯的一天</h1>
+  <textarea id="inputBox" rows="10" cols="50" placeholder="請輸入阿水伯的一日紀錄，例如：體溫36.5、下午去上音樂課..."></textarea>
+  <br />
+  <button onclick="generate()">開始生成</button>
+
+  <h2>回傳結果</h2>
+  <pre id="resultBox">（這裡會顯示結果）</pre>
+
+  <script>
+    async function generate() {
+      const inputText = document.getElementById("inputBox").value;
+
+      const response = await fetch("https://your-api.onrender.com/generate_diary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          input: inputText
+        })
+      });
+
+      const data = await response.json();
+      document.getElementById("resultBox").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
