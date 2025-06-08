@@ -2,103 +2,152 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>阿水伯日記生成器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安心記｜阿水伯日記生成器</title>
   <style>
     body {
-      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
-      padding: 2rem;
-      background-color: #fdfcf7;
+      margin: 0;
+      font-family: "Noto Sans TC", sans-serif;
+      background: #fdf7f4;
       color: #333;
-      line-height: 1.6;
+    }
+    .page {
+      display: none;
+      padding: 2rem;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .active {
+      display: block;
     }
     h1 {
       font-size: 28px;
-      color: #005b4f;
+      color: #b3404a;
+      text-align: center;
+    }
+    .logo {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    .intro {
+      font-size: 16px;
+      margin-bottom: 1.5rem;
+      white-space: pre-line;
+      background-color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
     }
     textarea {
       width: 100%;
       font-size: 16px;
       padding: 0.5rem;
       margin-bottom: 1rem;
+      border-radius: 6px;
+      border: 1px solid #aaa;
     }
     button {
-      padding: 0.5rem 1rem;
-      background-color: #00796b;
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #b3404a;
       color: white;
       border: none;
-      border-radius: 4px;
       font-size: 16px;
+      border-radius: 6px;
       cursor: pointer;
     }
-    .result-container {
-      margin-top: 2rem;
-      padding: 1rem;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .diary-text {
+    .date-bar {
       font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin: 1rem 0;
+    }
+    .diary {
       white-space: pre-wrap;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 16px;
+      line-height: 1.6;
+      border: 1px solid #ccc;
     }
-    .stamp {
-      font-size: 48px;
+    .photo {
+      width: 100%;
       margin-top: 1rem;
-    }
-    .image-preview {
-      margin-top: 1.5rem;
-      max-width: 100%;
-      border-radius: 6px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <h1>阿水伯的一天</h1>
 
-  <textarea id="inputBox" rows="10" placeholder="請輸入阿水伯的一日紀錄，例如：體溫36.5、下午去上音樂課..."></textarea>
-  <br />
-  <button onclick="generate()">開始生成</button>
+  <!-- 🟠 首頁：輸入觀察 -->
+  <div class="page active" id="introPage">
+    <div class="logo">
+      <img src="https://i.imgur.com/N8lixPz.png" alt="logo" width="48" />
+    </div>
+    <h1>安心記</h1>
+    <div class="intro">
+      因為時間、精力、經費所限制，我們的設想只呈現部分。<br><br>
+      這份網頁 demo 將呈現照服員的簡短輸入功能，並模擬家屬所看到的內容，包括：<br>
+      1. 日曆縮圖代表貼圖（emoji 或日期）<br>
+      2. 清福養老院里長伯的報告日記<br>
+      3. 若無實拍照，將顯示 AI 生成圖片<br><br>
+      👉 請以照服員身份輸入觀察內容，例如：<br>
+      今天天氣晴，阿水伯體溫36.2度，血壓171/68，下午出門散步，很開心
+    </div>
+    <textarea id="inputBox" rows="5" placeholder="請填寫觀察內容..."></textarea>
+    <button onclick="generate()">開始生成</button>
+  </div>
 
-  <div class="result-container" id="resultSection" style="display: none;">
-    <div class="diary-text" id="diaryText">⏳ 生成中...</div>
-    <div class="stamp" id="stamp">🌀</div>
-    <img class="image-preview" id="image" />
+  <!-- 🟢 結果頁：顯示日記、貼圖、圖片 -->
+  <div class="page" id="resultPage">
+    <div class="date-bar" id="dateBar">🗓️</div>
+    <img id="photo" class="photo" />
+    <div class="diary" id="diaryText">⏳ 正在生成...</div>
   </div>
 
   <script>
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+    }
+
     async function generate() {
-      const inputText = document.getElementById("inputBox").value;
-      document.getElementById("resultSection").style.display = "block";
-      document.getElementById("diaryText").textContent = "⏳ 正在幫阿水伯寫日記...";
-      document.getElementById("stamp").textContent = "🌀";
-      document.getElementById("image").src = "";
+      const input = document.getElementById("inputBox").value;
+      if (!input.trim()) {
+        alert("請填寫觀察內容！");
+        return;
+      }
+
+      showPage("resultPage");
+      document.getElementById("diaryText").textContent = "⏳ 正在生成...";
 
       const response = await fetch("https://grandparents666.onrender.com/generate_diary", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_input: inputText  // ⚠️ 注意：後端是 user_input，不是 input
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_input: input })
       });
 
       const data = await response.json();
 
-      // 顯示日記
-      document.getElementById("diaryText").textContent = data.diary || "（未收到日記內容）";
-
-      // 顯示 emoji 貼圖
-      document.getElementById("stamp").textContent = data.stamp || "❓";
+      // 顯示 emoji 或用日期 fallback
+      const today = new Date();
+      const fallbackDate = `${today.getMonth() + 1}月${today.getDate()}日`;
+      const emoji = data.stamp || fallbackDate;
+      document.getElementById("dateBar").textContent = emoji;
 
       // 顯示圖片
+      const img = document.getElementById("photo");
       if (data.image_base64 && data.image_base64.startsWith("data:image")) {
-        document.getElementById("image").src = data.image_base64;
+        img.src = data.image_base64;
       } else {
-        document.getElementById("image").alt = "（圖片載入失敗或未提供）";
+        img.style.display = "none";
       }
+
+      // 顯示日記
+      document.getElementById("diaryText").textContent = data.diary || "（未收到內容）";
     }
   </script>
 </body>
